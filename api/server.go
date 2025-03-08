@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"time"
 
 	containerd "github.com/containerd/containerd/v2/client"
 )
@@ -15,6 +16,7 @@ type Config struct {
 
 type Server struct {
 	*Config
+	Started time.Time
 
 	ContainerDaemon *containerd.Client
 }
@@ -41,6 +43,8 @@ func (s *Server) Start() {
 		Addr:    s.Config.ListenAddr,
 		Handler: mux,
 	}
+
+	s.Started = time.Now().UTC()
 
 	slog.Info("api is running", "address", s.Config.ListenAddr)
 	err := server.ListenAndServe()

@@ -10,7 +10,8 @@ import (
 
 type Health struct {
 	Status          string `json:"status"`
-	UTC             string `json:"utc"`
+	CurrentTime     string `json:"currentTime"`
+	Uptime          string `json:"upTime"`
 	NodeType        string `json:"type"`
 	Version         string `json:"version"`
 	FreeMemory      uint64 `json:"freeMemory"`
@@ -31,7 +32,8 @@ func (s *Server) Health(w http.ResponseWriter, r *http.Request) {
 
 	resp := Health{
 		Status:          "ok",
-		UTC:             time.Now().UTC().String(),
+		CurrentTime:     time.Now().UTC().String(),
+		Uptime:          time.Now().UTC().Sub(s.Started).String(),
 		NodeType:        "Architect",
 		Version:         "0.0.1",
 		FreeMemory:      memory.FreeMem,
