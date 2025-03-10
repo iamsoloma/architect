@@ -25,7 +25,7 @@ func NewServer(config Config) (*Server, error) {
 	client, err := containerd.New(config.AddrOfContainerDaemonSocket)
 	if err != nil {
 		return nil, errors.New("failed to connect to containerd: " + err.Error())
-	}
+	} 
 
 	return &Server{
 		Config:          &config,
@@ -38,6 +38,8 @@ func (s *Server) Start() {
 
 	mux.HandleFunc("GET /health", s.Health)
 	mux.HandleFunc("GET /namespaces", s.ListNamespaces)
+	mux.HandleFunc("DELETE /namespace", s.DeleteNamespace)
+	mux.HandleFunc("POST /namespace", s.CreateNamespace)
 
 	server := http.Server{
 		Addr:    s.Config.ListenAddr,
