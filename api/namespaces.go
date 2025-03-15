@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	//"os"
-
 	"github.com/containerd/containerd/v2/pkg/namespaces"
 )
 
@@ -63,6 +61,7 @@ func (s *Server) DeleteNamespace(w http.ResponseWriter, r *http.Request) {
 	req := Namespace{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	ctx := namespaces.WithNamespace(context.Background(), req.Name)
@@ -88,7 +87,7 @@ func (s *Server) CreateNamespace(w http.ResponseWriter, r *http.Request) {
 
 	err := s.ContainerDaemon.NamespaceService().Create(ctx, req.Name, req.Labels)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "pulling:"+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
