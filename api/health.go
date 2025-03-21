@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -44,7 +45,22 @@ func (s *Server) Health(w http.ResponseWriter, r *http.Request) {
 		TotalDisk:       disk.TotalDisk,
 	}
 
+
 	jsonResp, err := json.Marshal(resp)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	} else {
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonResp)
+	}
+}
+
+func (s *Server) Info(w http.ResponseWriter, r *http.Request) {
+	info, err := s.DockerClient.Info(context.Background())
+
+	jsonResp, err := json.Marshal(info)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

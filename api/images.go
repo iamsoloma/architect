@@ -22,6 +22,10 @@ type PullReq struct {
 	Password string `json:"password,omitempty"`
 }
 
+type RemoveReq struct {
+	Image string `json:"image"`
+}
+
 func (s *Server) ListImages(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
@@ -64,12 +68,39 @@ func (s *Server) PullImage(w http.ResponseWriter, r *http.Request) {
 	}
 	authStr := base64.URLEncoding.EncodeToString(encodedJSON)
 
-	out, err := s.DockerClient.ImagePull(ctx, req.Image, image.PullOptions{RegistryAuth: authStr})
+	pulling, err := s.DockerClient.ImagePull(ctx, req.Image, image.PullOptions{RegistryAuth: authStr})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	defer out.Close()
-	io.Copy(w, out)
+	defer pulling.Close()
+	io.Copy(w, pulling)
+}
+
+func (s *Server) RemoveImage(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+	req := RemoveReq{}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	removedImages, err := s.DockerClient.ImageRemove(ctx, req.Image, image.RemoveOptions{})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	jsonResp, err := json.Marshal(removedImages)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	} else {
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonResp)
+	}
+
 }
